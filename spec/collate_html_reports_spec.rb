@@ -76,21 +76,21 @@ describe Fastlane::Actions::CollateHtmlReportsAction do
         'AtomicBoyUITests.SwiftAtomicBoyUITests/testExample'
       )
       failing_testcases = REXML::XPath.match(report, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test') and contains(@class, 'failing')]//*[contains(@class, 'title')]")
-      expect(failing_testcases.size).to eq(1)
+      expect(failing_testcases.size).to eq(2)
       failing_testcase = failing_testcases.first
       failing_testclass = REXML::XPath.match(failing_testcase, "ancestor::*/*[contains(@class, 'test-suite')]")[0]
       expect(failing_testclass.attribute('id').value).to eq('AtomicBoyUITests')
       expect(failing_testcase.text.strip).to eq('testExample')
 
       failing_testcase_details = REXML::XPath.match(report, ".//*[contains(@class, 'tests')]//*[contains(@class, 'details') and contains(@class, 'failing')]")
-      expect(failing_testcase_details.size).to eq(1)
+      expect(failing_testcase_details.size).to eq(2)
       failing_testcase_class = failing_testcase_details[0].attribute('class').value
       expect(failing_testcase_class.split(' ')).to include('testExample')
 
       test_count = REXML::XPath.first(report, ".//*[@id='test-count']/span").text.strip
       expect(test_count).to eq('3')
       fail_count = REXML::XPath.first(report, ".//*[@id='fail-count']/span").text.strip
-      expect(fail_count).to eq('1')
+      expect(fail_count).to eq('2')
 
       failing_testsuites = REXML::XPath.match(report, "//*[contains(@class, 'test-suite') and contains(@class, 'failing')]")
       expect(failing_testsuites.size).to eq(1)
