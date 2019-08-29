@@ -68,6 +68,10 @@ module Fastlane
         REXML::XPath.first(report, "//section[contains(@class, 'test-suite') and @id='#{testsuite_name}']")
       end
 
+      def self.testsuite_testcases(testsuite)
+        REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]")
+      end
+
       def self.testcases_from_testsuite(testsuite)
         REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]//*[contains(@class, 'title')]")
       end
