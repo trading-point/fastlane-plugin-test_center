@@ -76,6 +76,10 @@ module Fastlane
         REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]//*[contains(@class, 'title')]")
       end
 
+      def self.testcase_title(testcase)
+        REXML::XPath.first(testcase, ".//h3[contains(@class, 'title')]/text()").to_s
+      end
+
       def self.testcase_from_testsuite(testsuite, testcase_name)
         REXML::XPath.first(testsuite, "*[contains(@class, 'test')]//*[text()='#{testcase_name}']/../..")
       end

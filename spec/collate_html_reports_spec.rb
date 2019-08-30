@@ -150,5 +150,27 @@ module Fastlane::Actions
         )
       end
     end
+
+    describe "#testcase_title" do
+      it 'retrieves the title of each testcase' do
+        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        expected_titles = [
+          'testExample17',
+          'testExample2',
+          'testExample5'
+        ]
+        actual_titles = testcases.map do |testcase|
+          CollateHtmlReportsAction.testcase_title(testcase)
+        end
+        expect(expected_titles).to eq(actual_titles)
+      end
+    end
+
+    describe '#merge_testcase_into_testsuite' do
+      skip 'replaces an existing testcase with the new testcase'
+      skip 'adds the testcase into a testsuite that does not have the testcase'
+      skip 'updates the row coloring of the testsuite for testcase replacement'
+      skip 'updates the row coloring of the testsuite for testcase addition'
+    end
   end
 end
