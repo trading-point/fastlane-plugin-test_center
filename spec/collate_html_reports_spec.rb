@@ -1,21 +1,23 @@
+def testidentifiers_from_xmlreport(report)
+  testable = REXML::XPath.first(report, "//section[@id='test-suites']")
+  testsuites = REXML::XPath.match(testable, "section[contains(@class, 'test-suite')]")
+  testidentifiers = []
+  testsuites.each do |testsuite|
+    testidentifiers += REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]//*[contains(@class, 'title')]").map do |testcase|
+      "#{testsuite.attribute('id').value}/#{testcase.text.strip}"
+    end
+  end
+  testidentifiers
+end
 
 module Fastlane::Actions
   
   html_report_1 = File.open('./spec/fixtures/report.html')
   html_report_2 = File.open('./spec/fixtures/report-2.html')
   atomicboy_ui_testsuite = REXML::Document.new(File.read('./spec/fixtures/atomicboy_uitestsuite.html'))
+  atomicboy_ui_testsuite2 = REXML::Document.new(File.read('./spec/fixtures/atomicboy_uitestsuite-2.html'))
+  atomicboy_ui_testsuite3 = REXML::Document.new(File.read('./spec/fixtures/atomicboy_uitestsuite-3.html'))
  
-  def testidentifiers_from_xmlreport(report)
-    testable = REXML::XPath.first(report, "//section[@id='test-suites']")
-    testsuites = REXML::XPath.match(testable, "section[contains(@class, 'test-suite')]")
-    testidentifiers = []
-    testsuites.each do |testsuite|
-      testidentifiers += REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]//*[contains(@class, 'title')]").map do |testcase|
-        "#{testsuite.attribute('id').value}/#{testcase.text.strip}"
-      end
-    end
-    testidentifiers
-  end
 
   describe "CollateHtmlReportsAction" do
     before(:each) do
@@ -53,7 +55,7 @@ module Fastlane::Actions
         Fastlane::FastFile.new.parse(fastfile).runner.execute(:test)
       end
 
-      it 'merges missing testsuites into one file' do
+      skip 'merges missing testsuites into one file' do
         fastfile = "lane :test do
           collate_html_reports(
             reports: ['path/to/fake_html_report_1.html', 'path/to/fake_html_report_2.html'],
@@ -78,7 +80,8 @@ module Fastlane::Actions
           'AtomicBoyUITests/testExample2',
           'AtomicBoyUITests.SwiftAtomicBoyUITests/testExample'
         )
-        failing_testcases = REXML::XPath.match(report, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test') and contains(@class, 'failing')]//*[contains(@class, 'title')]")
+
+        failing_testcases = REXML::XPath.match(report, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ') and contains(@class, 'failing')]//*[contains(@class, 'title')]")
         expect(failing_testcases.size).to eq(2)
         failing_testcase = failing_testcases.first
         failing_testclass = REXML::XPath.match(failing_testcase, "ancestor::*/*[contains(@class, 'test-suite')]")[0]
@@ -167,8 +170,34 @@ module Fastlane::Actions
     end
 
     describe '#merge_testcase_into_testsuite' do
-      skip 'replaces an existing testcase with the new testcase'
-      skip 'adds the testcase into a testsuite that does not have the testcase'
+      it 'replaces an existing testcase with the new testcase' do
+        testcases2 = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite2)
+        testcases2.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, atomicboy_ui_testsuite)
+        end
+        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        expect(testcases.size).to eq(3)
+        teststatuses = testcases.map do |testcase|
+          m = testcase.attribute('class').value.match(/\b(?<status>failing|passing)\b/)
+          m[:status]
+        end
+        expect(teststatuses).to eq(%w[passing passing passing])
+      end
+
+      it 'adds the testcase into a testsuite that does not have the testcase' do
+        testcases3 = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite3)
+        testcases3.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, atomicboy_ui_testsuite)
+        end
+        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        expect(testcases.size).to eq(4)
+        teststatuses = testcases.map do |testcase|
+          m = testcase.attribute('class').value.match(/\b(?<status>failing|passing)\b/)
+          m[:status]
+        end
+        expect(teststatuses).to eq(%w[passing passing passing passing])
+      end
+
       skip 'updates the row coloring of the testsuite for testcase replacement'
       skip 'updates the row coloring of the testsuite for testcase addition'
     end

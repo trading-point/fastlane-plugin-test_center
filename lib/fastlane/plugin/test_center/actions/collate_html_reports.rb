@@ -69,11 +69,11 @@ module Fastlane
       end
 
       def self.testsuite_testcases(testsuite)
-        REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]")
+        REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ')]")
       end
 
       def self.testcases_from_testsuite(testsuite)
-        REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(@class, 'test')]//*[contains(@class, 'title')]")
+        REXML::XPath.match(testsuite, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ')]//*[contains(@class, 'title')]")
       end
 
       def self.testcase_title(testcase)
@@ -81,7 +81,18 @@ module Fastlane
       end
 
       def self.testcase_from_testsuite(testsuite, testcase_name)
-        REXML::XPath.first(testsuite, "*[contains(@class, 'test')]//*[text()='#{testcase_name}']/../..")
+        REXML::XPath.first(testsuite, "//[contains(concat(' ', @class, ' '), ' test ')]//*[text()='#{testcase_name}']/../..")
+      end
+
+      def self.merge_testcase_into_testsuite(testcase, testsuite)
+        testcase_name = testcase_title(testcase)
+        existing_testcase = testcase_from_testsuite(testsuite, testcase_name)
+        if existing_testcase
+          existing_testcase.parent.replace_child(existing_testcase, testcase)
+        else
+          tests_table = REXML::XPath.first(testsuite, ".//*[contains(@class, 'tests')]/table")
+          tests_table.push(testcase)
+        end
       end
 
       def self.collate_testsuite(target_testsuite, testsuite)
