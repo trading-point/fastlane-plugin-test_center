@@ -179,9 +179,9 @@ module Fastlane::Actions
 
     describe '#merge_testcase_into_testsuite' do
       before(:each) do
-        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file)
-        @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2)
-        @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3)      
+        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file).root
+        @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2).root
+        @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3).root      
       end
 
 
@@ -212,6 +212,12 @@ module Fastlane::Actions
         end
         expect(teststatuses).to eq(%w[failing passing passing passing])
       end
+
+      skip 'removes pre-existing failure details for a failing test when replaced with a passing version of the same test' do
+        
+      end
+
+      skip 'adds the failure details for a new failing test'
 
       it 'updates the row coloring of the testsuite for testcase replacement' do
         testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)
@@ -246,6 +252,30 @@ module Fastlane::Actions
           end
         end
       end
+      it 'updates the overall testsuite passing status' do
+        testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)
+        testcases2.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, true)
+        end
+        testsuite_passing = @atomicboy_ui_testsuite.attribute('class').value.match(/\bpassing\b/) != nil
+        expect(testsuite_passing).to eq(true)
+      end
+
+      it 'updates the overall testsuite failing status' do
+        testcases3 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite3)
+        testcases3.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, true)
+        end
+        testsuite_failing = @atomicboy_ui_testsuite.attribute('class').value.match(/\bfailing\b/) != nil
+        expect(testsuite_failing).to eq(true)
+      end
+    end
+
+    describe '#merge_testsuite_into_testsuite' do
+      skip 'replaces failing tests when they have passed'
+      skip 'replaces failing tests with newer failing tests'
+      skip 'removes failure details for tests that have later passed'
+      skip 'adds failure details for tests that did not appear in the first testsuite'
     end
   end
 end
