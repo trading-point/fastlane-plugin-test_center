@@ -14,10 +14,10 @@ module Fastlane::Actions
   
   html_report_1 = File.open('./spec/fixtures/report.html')
   html_report_2 = File.open('./spec/fixtures/report-2.html')
-  atomicboy_ui_testsuite = REXML::Document.new(File.read('./spec/fixtures/atomicboy_uitestsuite.html'))
-  atomicboy_ui_testsuite2 = REXML::Document.new(File.read('./spec/fixtures/atomicboy_uitestsuite-2.html'))
-  atomicboy_ui_testsuite3 = REXML::Document.new(File.read('./spec/fixtures/atomicboy_uitestsuite-3.html'))
- 
+
+  atomicboy_ui_testsuite_file = File.read('./spec/fixtures/atomicboy_uitestsuite.html')
+  atomicboy_ui_testsuite_file2 = File.read('./spec/fixtures/atomicboy_uitestsuite-2.html')
+  atomicboy_ui_testsuite_file3 = File.read('./spec/fixtures/atomicboy_uitestsuite-3.html') 
 
   describe "CollateHtmlReportsAction" do
     before(:each) do
@@ -140,8 +140,12 @@ module Fastlane::Actions
     end
 
     describe '#testsuite_testcases' do
+      before(:each) do
+        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file)
+      end
+
       it 'retrieves all the testcases' do
-        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
         expect(testcases.size).to eq(3)
         onclicks = testcases.map do |testcase|
           testcase.attribute('onclick').value
@@ -155,8 +159,12 @@ module Fastlane::Actions
     end
 
     describe "#testcase_title" do
+      before(:each) do
+        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file)    
+      end
+
       it 'retrieves the title of each testcase' do
-        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
         expected_titles = [
           'testExample17',
           'testExample2',
@@ -170,12 +178,19 @@ module Fastlane::Actions
     end
 
     describe '#merge_testcase_into_testsuite' do
+      before(:each) do
+        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file)
+        @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2)
+        @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3)      
+      end
+
+
       it 'replaces an existing testcase with the new testcase' do
-        testcases2 = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite2)
+        testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)
         testcases2.each do |testcase|
-          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, atomicboy_ui_testsuite)
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, false)
         end
-        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
         expect(testcases.size).to eq(3)
         teststatuses = testcases.map do |testcase|
           m = testcase.attribute('class').value.match(/\b(?<status>failing|passing)\b/)
@@ -185,21 +200,52 @@ module Fastlane::Actions
       end
 
       it 'adds the testcase into a testsuite that does not have the testcase' do
-        testcases3 = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite3)
+        testcases3 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite3)
         testcases3.each do |testcase|
-          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, atomicboy_ui_testsuite)
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, false)
         end
-        testcases = CollateHtmlReportsAction.testsuite_testcases(atomicboy_ui_testsuite)
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
         expect(testcases.size).to eq(4)
         teststatuses = testcases.map do |testcase|
           m = testcase.attribute('class').value.match(/\b(?<status>failing|passing)\b/)
           m[:status]
         end
-        expect(teststatuses).to eq(%w[passing passing passing passing])
+        expect(teststatuses).to eq(%w[failing passing passing passing])
       end
 
-      skip 'updates the row coloring of the testsuite for testcase replacement'
-      skip 'updates the row coloring of the testsuite for testcase addition'
+      it 'updates the row coloring of the testsuite for testcase replacement' do
+        testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)
+        testcases2.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, true)
+        end
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
+        teststatuses = testcases.each_with_index.map do |testcase, index|
+          even_expected = (index % 2).zero?
+          m = testcase.attribute('class').value.match(/\bodd\b/)
+          if even_expected
+            expect(m).to be_nil
+          else
+            expect(m).not_to be_nil
+          end
+        end
+      end
+
+      it 'updates the row coloring of the testsuite for testcase addition' do
+        testcases3 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite3)
+        testcases3.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, true)
+        end
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
+        teststatuses = testcases.each_with_index.map do |testcase, index|
+          even_expected = (index % 2).zero?
+          m = testcase.attribute('class').value.match(/\bodd\b/)
+          if even_expected
+            expect(m).to be_nil, "testcase row #{index + 1} coloring was odd when it was expected to be even"
+          else
+            expect(m).not_to be_nil, "testcase row #{index + 1} coloring was even when it was expected to be odd"
+          end
+        end
+      end
     end
   end
 end

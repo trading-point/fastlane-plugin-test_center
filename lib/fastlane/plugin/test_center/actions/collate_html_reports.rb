@@ -84,15 +84,33 @@ module Fastlane
         REXML::XPath.first(testsuite, "//[contains(concat(' ', @class, ' '), ' test ')]//*[text()='#{testcase_name}']/../..")
       end
 
-      def self.merge_testcase_into_testsuite(testcase, testsuite)
+      def self.set_testcase_row_coloring_odd(testcase, should_color_odd)
+        has_odd_row_coloring = testcase.attribute('class').value.match(/\bodd\b/)
+        if has_odd_row_coloring && !should_color_odd
+          testcase.set_attribute('class', testcase.attribute('class').value.delete('\bodd\b'))
+        elsif !has_odd_row_coloring && should_color_odd
+          testcase.add_attribute('class', testcase.attribute('class').value.concat(' odd'))
+        end
+      end
+
+      def self.merge_testcase_into_testsuite(testcase, testsuite, should_update_row_coloring)
         testcase_name = testcase_title(testcase)
         existing_testcase = testcase_from_testsuite(testsuite, testcase_name)
+        should_color_odd = false
         if existing_testcase
+          if should_update_row_coloring
+            should_color_odd = (existing_testcase.attribute('class').value.match(/\bodd\b/) != nil)
+          end
           existing_testcase.parent.replace_child(existing_testcase, testcase)
         else
           tests_table = REXML::XPath.first(testsuite, ".//*[contains(@class, 'tests')]/table")
+          if should_update_row_coloring
+            last_testcase = testcases_from_testsuite(testsuite).last
+            should_color_odd = last_testcase.attribute('class').value.match(/\bodd\b/).nil?
+          end
           tests_table.push(testcase)
         end
+        set_testcase_row_coloring_odd(testcase, should_color_odd) if should_update_row_coloring
       end
 
       def self.collate_testsuite(target_testsuite, testsuite)
