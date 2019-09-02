@@ -18,6 +18,7 @@ module Fastlane::Actions
   atomicboy_ui_testsuite_file = File.read('./spec/fixtures/atomicboy_uitestsuite.html')
   atomicboy_ui_testsuite_file2 = File.read('./spec/fixtures/atomicboy_uitestsuite-2.html')
   atomicboy_ui_testsuite_file3 = File.read('./spec/fixtures/atomicboy_uitestsuite-3.html') 
+  atomicboy_ui_testsuite_file4 = File.read('./spec/fixtures/atomicboy_uitestsuite-4.html') 
 
   describe "CollateHtmlReportsAction" do
     before(:each) do
@@ -182,6 +183,7 @@ module Fastlane::Actions
         @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file).root
         @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2).root
         @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3).root      
+        @atomicboy_ui_testsuite4 = REXML::Document.new(atomicboy_ui_testsuite_file4).root      
       end
 
 
@@ -213,11 +215,31 @@ module Fastlane::Actions
         expect(teststatuses).to eq(%w[failing passing passing passing])
       end
 
-      skip 'removes pre-existing failure details for a failing test when replaced with a passing version of the same test' do
-        
+      it 'removes pre-existing failure details for a failing test when replaced with a passing version of the same test' do
+        testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)
+        testcases2.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, false)
+          testcase_failures = CollateHtmlReportsAction.testcase_failures_in_testsuite(@atomicboy_ui_testsuite)
+          testcase_title = CollateHtmlReportsAction.testcase_title(testcase)
+          no_testcase_failure = testcase_failures.none? do |testcase_failure|
+            testcase_failure.attribute('class').value.include?(testcase_title)
+          end
+          expect(no_testcase_failure).to be(true)
+        end        
       end
 
-      skip 'adds the failure details for a new failing test'
+      it 'adds the failure details for a new failing test' do
+        testcases4 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite4)
+        testcases4.each do |testcase|
+          CollateHtmlReportsAction.merge_testcase_into_testsuite(testcase, @atomicboy_ui_testsuite, false)
+          testcase_failures = CollateHtmlReportsAction.testcase_failures_in_testsuite(@atomicboy_ui_testsuite)
+          testcase_title = CollateHtmlReportsAction.testcase_title(testcase)
+          found_testcase_failure = testcase_failures.any? do |testcase_failure|
+            testcase_failure.attribute('class').value.include?(testcase_title)
+          end
+          expect(found_testcase_failure).to be(true)
+        end
+      end
 
       it 'updates the row coloring of the testsuite for testcase replacement' do
         testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)

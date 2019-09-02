@@ -84,6 +84,20 @@ module Fastlane
         REXML::XPath.first(testsuite, "//[contains(concat(' ', @class, ' '), ' test ')]//*[text()='#{testcase_name}']/../..")
       end
 
+      def self.testcase_failure(testcase)
+        xpath_class_attributes = [
+          "contains(concat(' ', @class, ' '), ' details ')",
+          "contains(concat(' ', @class, ' '), ' failing ')",
+          "contains(concat(' ', @class, ' '), ' #{testcase_title(testcase)} ')"
+        ].join(' and ')
+        
+        REXML::XPath.first(testcase.parent, "//[#{xpath_class_attributes}]")
+      end
+
+      def self.testcase_failures_in_testsuite(testsuite)
+        REXML::XPath.match(testsuite, "//[contains(concat(' ', @class, ' '), ' details ') and contains(concat(' ', @class, ' '), ' failing ')]")
+      end
+
       def self.set_testcase_row_coloring_odd(testcase, should_color_odd)
         has_odd_row_coloring = testcase.attribute('class').value.match(/\bodd\b/)
         if has_odd_row_coloring && !should_color_odd
@@ -109,6 +123,10 @@ module Fastlane
           if should_update_attributes
             should_color_odd = (existing_testcase.attribute('class').value.match(/\bodd\b/) != nil)
           end
+          existing_testcase_failure = testcase_failure(existing_testcase)
+          if existing_testcase_failure
+            existing_testcase.parent.delete(existing_testcase_failure)
+          end
           existing_testcase.parent.replace_child(existing_testcase, testcase)
         else
           tests_table = REXML::XPath.first(testsuite, ".//*[contains(@class, 'tests')]/table")
@@ -116,7 +134,11 @@ module Fastlane
             last_testcase = testsuite_testcases(testsuite).last
             should_color_odd = last_testcase.attribute('class').value.match(/\bodd\b/).nil?
           end
-          tests_table.push(testcase)
+          tests_table.push(testcase.clone)
+          if testcase.attribute('class').value.match(/\bfailing\b/)
+            testcase_failure = testcase_failure(testcase)
+            tests_table.push(testcase_failure)
+          end
         end
         if should_update_attributes
           set_testcase_row_coloring_odd(testcase, should_color_odd)
