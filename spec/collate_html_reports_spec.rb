@@ -24,7 +24,11 @@ module Fastlane::Actions
     before(:each) do
       allow(File).to receive(:exist?).and_call_original
       allow(File).to receive(:open).and_call_original
-    end
+      @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file).root
+      @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2).root
+      @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3).root      
+      @atomicboy_ui_testsuite4 = REXML::Document.new(atomicboy_ui_testsuite_file4).root      
+  end
 
     describe 'it handles invalid data' do
       it 'a failure occurs when non-existent HTML file is specified' do
@@ -141,10 +145,6 @@ module Fastlane::Actions
     end
 
     describe '#testsuite_testcases' do
-      before(:each) do
-        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file)
-      end
-
       it 'retrieves all the testcases' do
         testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
         expect(testcases.size).to eq(3)
@@ -160,10 +160,6 @@ module Fastlane::Actions
     end
 
     describe "#testcase_title" do
-      before(:each) do
-        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file)    
-      end
-
       it 'retrieves the title of each testcase' do
         testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
         expected_titles = [
@@ -179,14 +175,6 @@ module Fastlane::Actions
     end
 
     describe '#merge_testcase_into_testsuite' do
-      before(:each) do
-        @atomicboy_ui_testsuite = REXML::Document.new(atomicboy_ui_testsuite_file).root
-        @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2).root
-        @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3).root      
-        @atomicboy_ui_testsuite4 = REXML::Document.new(atomicboy_ui_testsuite_file4).root      
-      end
-
-
       it 'replaces an existing testcase with the new testcase' do
         testcases2 = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite2)
         testcases2.each do |testcase|
@@ -294,10 +282,60 @@ module Fastlane::Actions
     end
 
     describe '#merge_testsuite_into_testsuite' do
-      skip 'replaces failing tests when they have passed'
-      skip 'replaces failing tests with newer failing tests'
+      it 'replaces failing tests when they have passed' do
+        CollateHtmlReportsAction.merge_testsuite_into_testsuite(@atomicboy_ui_testsuite2, @atomicboy_ui_testsuite)
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
+        expect(testcases.size).to eq(3)
+        
+        teststatuses = testcases.each_with_index.map do |testcase, index|
+          even_expected = (index % 2).zero?
+          m = testcase.attribute('class').value.match(/\bodd\b/)
+          if even_expected
+            expect(m).to be_nil, "testcase row #{index + 1} coloring was odd when it was expected to be even"
+          else
+            expect(m).not_to be_nil, "testcase row #{index + 1} coloring was even when it was expected to be odd"
+          end
+        end
+
+        teststatuses = testcases.map do |testcase|
+          m = testcase.attribute('class').value.match(/\b(?<status>failing|passing)\b/)
+          m[:status]
+        end
+        expect(teststatuses).to eq(%w[passing passing passing])
+        testsuite_passing = @atomicboy_ui_testsuite.attribute('class').value.match(/\bpassing\b/) != nil
+        expect(testsuite_passing).to eq(true)
+      end
+
+      it 'replaces failing tests with newer failing tests' do
+        CollateHtmlReportsAction.merge_testsuite_into_testsuite(@atomicboy_ui_testsuite3, @atomicboy_ui_testsuite)
+        testcases = CollateHtmlReportsAction.testsuite_testcases(@atomicboy_ui_testsuite)
+        expect(testcases.size).to eq(4)
+        
+        teststatuses = testcases.each_with_index.map do |testcase, index|
+          even_expected = (index % 2).zero?
+          m = testcase.attribute('class').value.match(/\bodd\b/)
+          if even_expected
+            expect(m).to be_nil, "testcase row #{index + 1} coloring was odd when it was expected to be even"
+          else
+            expect(m).not_to be_nil, "testcase row #{index + 1} coloring was even when it was expected to be odd"
+          end
+        end
+
+        teststatuses = testcases.map do |testcase|
+          m = testcase.attribute('class').value.match(/\b(?<status>failing|passing)\b/)
+          m[:status]
+        end
+        expect(teststatuses).to eq(%w[failing passing passing passing])
+        testsuite_failing = @atomicboy_ui_testsuite.attribute('class').value.match(/\bfailing\b/) != nil
+        expect(testsuite_failing).to eq(true)
+      end
+
       skip 'removes failure details for tests that have later passed'
       skip 'adds failure details for tests that did not appear in the first testsuite'
+    end
+
+    describe '#merge_html_report_into_html_report' do
+      skip 'it adds a testsuite when it does not already exist'
     end
   end
 end

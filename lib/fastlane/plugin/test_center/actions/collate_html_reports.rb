@@ -149,6 +149,14 @@ module Fastlane
         end
       end
 
+      def self.merge_testsuite_into_testsuite(testsuite_to_merge, testsuite_to_merge_into)
+        testcases = testsuite_testcases(testsuite_to_merge)
+        testcase_count = testcases.size
+        testcases.each_with_index do |testcase, index|
+          merge_testcase_into_testsuite(testcase, testsuite_to_merge_into, index + 1 == testcase_count)
+        end
+      end
+
       def self.collate_testsuite(target_testsuite, testsuite)
         if target_testsuite
           testcases = testcases_from_testsuite(testsuite)
