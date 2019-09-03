@@ -329,9 +329,6 @@ module Fastlane::Actions
         testsuite_failing = @atomicboy_ui_testsuite.attribute('class').value.match(/\bfailing\b/) != nil
         expect(testsuite_failing).to eq(true)
       end
-
-      skip 'removes failure details for tests that have later passed'
-      skip 'adds failure details for tests that did not appear in the first testsuite'
     end
 
     describe '#merge_html_report_into_html_report' do
