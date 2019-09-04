@@ -54,6 +54,17 @@ module TestCenter
           REXML::XPath.first(@root, ".//h3[contains(@class, 'title')]/text()").to_s
         end
 
+        def row_color
+          @root.attribute('class').value.include?('odd') ? 'odd' : ''
+        end
+
+        def set_row_color(row_color)
+          raise 'row_color must either be "odd" or ""' unless ['odd', ''].include?(row_color)
+
+          current_class_attribute = @root.attribute('class').value.sub(/\bodd\b/, '')
+          @root.add_attribute('class', current_class_attribute << ' ' << row_color)
+        end
+
         def add_failure_details(failure_details_element)
           @failure_details_element = failure_details_element.clone
         end

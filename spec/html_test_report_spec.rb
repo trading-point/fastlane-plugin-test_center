@@ -47,6 +47,47 @@ module TestCenter::Helper::HtmlTestReport
           )
         end
       end
+
+      describe '#row_color' do
+        it 'returns the correct row colors' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_testcases = testsuites[0].testcases
+          testcase_row_colors = atomic_boy_ui_testcases.map(&:row_color)
+          expect(testcase_row_colors).to eq(
+            [
+              '',
+              'odd'
+            ]
+          )
+        end
+      end
+
+      describe '#set_row_color' do
+        it 'correctly sets an even row_color' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_testcase2 = testsuites[0].testcases[1]
+          atomic_boy_ui_testcase2.set_row_color('')
+          expect(atomic_boy_ui_testcase2.row_color).to eq('')
+        end
+
+        it 'correctly sets an odd row_color' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_testcase1 = testsuites[0].testcases[0]
+          atomic_boy_ui_testcase1.set_row_color('odd')
+          expect(atomic_boy_ui_testcase1.row_color).to eq('odd')
+        end
+
+        it 'throws an error if set to an invalid color' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_testcase1 = testsuites[0].testcases[0]
+          expect { atomic_boy_ui_testcase1.set_row_color('invalid') }
+            .to raise_error('row_color must either be "odd" or ""')
+        end
+      end
     end
   end
 end
