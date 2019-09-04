@@ -19,13 +19,17 @@ module TestCenter
           @root = testsuite_element
         end
 
+        def title
+          @root.attribute('id').value
+        end
+
         def testcases
           testcase_failure_xpath = [
             "contains(concat(' ', @class, ' '), ' details ')",
             "contains(concat(' ', @class, ' '), ' failing ')"
           ].join(' and ')
 
-          failure_details_elements = REXML::XPath.match(testsuite, "//[#{testcase_failure_xpath}]")
+          failure_details_elements = REXML::XPath.match(@root, "//[#{testcase_failure_xpath}]")
 
           testcase_elements = REXML::XPath.match(@root, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ')]")
           testcase_elements.map do |testcase_element|
@@ -36,6 +40,7 @@ module TestCenter
             end
 
             testcase.add_failure_details(failure_details_element)
+            testcase
           end
         end
       end
