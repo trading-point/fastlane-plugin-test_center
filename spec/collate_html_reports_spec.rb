@@ -28,7 +28,7 @@ module Fastlane::Actions
       @atomicboy_ui_testsuite2 = REXML::Document.new(atomicboy_ui_testsuite_file2).root
       @atomicboy_ui_testsuite3 = REXML::Document.new(atomicboy_ui_testsuite_file3).root      
       @atomicboy_ui_testsuite4 = REXML::Document.new(atomicboy_ui_testsuite_file4).root      
-  end
+    end
 
     describe 'it handles invalid data' do
       it 'a failure occurs when non-existent HTML file is specified' do

@@ -33,14 +33,7 @@ module TestCenter
 
           testcase_elements = REXML::XPath.match(@root, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ')]")
           testcase_elements.map do |testcase_element|
-            testcase = TestCase.new(testcase_element)
-            title = testcase.title
-            failure_details_element = failure_details_elements.find do |failure_element|
-              failure_element.attribute('class').value.include?(title)
-            end
-
-            testcase.add_failure_details(failure_details_element)
-            testcase
+            TestCase.new(testcase_element)
           end
         end
       end
@@ -65,8 +58,16 @@ module TestCenter
           @root.add_attribute('class', current_class_attribute << ' ' << row_color)
         end
 
-        def add_failure_details(failure_details_element)
-          @failure_details_element = failure_details_element.clone
+        def failure_details
+          return '' if @root.attribute('class').value.include?('passing')
+
+          xpath_class_attributes = [
+            "contains(concat(' ', @class, ' '), ' details ')",
+            "contains(concat(' ', @class, ' '), ' failing ')",
+            "contains(concat(' ', @class, ' '), ' #{title} ')"
+          ].join(' and ')
+          
+          REXML::XPath.first(@root.parent, "//[#{xpath_class_attributes}]")
         end
       end
     end

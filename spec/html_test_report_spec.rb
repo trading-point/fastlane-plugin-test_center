@@ -88,6 +88,26 @@ module TestCenter::Helper::HtmlTestReport
             .to raise_error('row_color must either be "odd" or ""')
         end
       end
+
+      describe '#failure_details' do
+        it 'returns an empty string for a passing testcase' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-2.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_swift_testcase1 = testsuites[0].testcases[0]
+          expect(atomic_boy_ui_swift_testcase1.failure_details).to eq('')
+        end
+
+        it 'returns the failure details for a failing test' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_testcase1 = testsuites[0].testcases[0]
+          failure_details = atomic_boy_ui_testcase1.failure_details
+          failure_reason = REXML::XPath.first(failure_details, "//[contains(@class, 'reason')]/text()").to_s
+          expect(failure_reason).to eq('((false) is true) failed')
+          failure_location = REXML::XPath.first(failure_details, "//[@class = 'test-detail']/text()").to_s
+          expect(failure_location).to eq('AtomicBoyUITests.m:40')
+        end
+      end 
     end
   end
 end
