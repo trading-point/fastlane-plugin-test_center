@@ -85,6 +85,7 @@ module TestCenter
           end
           parent.replace_child(@root, testcase.root)
           @root = testcase.root
+          set_row_color(color)
         end
       end
     end

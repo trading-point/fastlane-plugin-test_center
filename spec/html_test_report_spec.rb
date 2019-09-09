@@ -123,10 +123,23 @@ module TestCenter::Helper::HtmlTestReport
           expect(atomic_boy_ui_failing_testcase.failure_details).to eq('')
         end
 
-        skip 'matches the previous passing status'
-        skip 'matches the previous row color'
-        skip 'replaces a failing testcase with a more up-to-date testcase'
         skip 'replaces a passing test case with a failing test case'
+
+        it 'matches the previous row color' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_failing_testcase = testsuites[1].testcases[0]
+          atomic_boy_ui_failing_testcase.set_row_color('odd')
+          
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-2.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_swift_passing_testcase = testsuites[0].testcases[0]
+
+          atomic_boy_ui_failing_testcase.update_testcase(atomic_boy_ui_swift_passing_testcase)
+          expect(atomic_boy_ui_failing_testcase.row_color).to eq('odd')
+        end
+
+        skip 'replaces a failing testcase with a more up-to-date testcase'
       end
     end
   end
