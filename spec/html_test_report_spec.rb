@@ -63,6 +63,22 @@ module TestCenter::Helper::HtmlTestReport
         end
       end
 
+      describe '#passing?' do
+        it 'returns true when testcase is passing' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_testcases = testsuites[0].testcases
+          passing_statuses = atomic_boy_ui_testcases.map(&:passing?)
+          expect(passing_statuses).to eq(
+            [
+              false,
+              true,
+              true
+            ]
+          )
+        end
+      end
+
       describe '#set_row_color' do
         it 'correctly sets an even row_color' do
           html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))

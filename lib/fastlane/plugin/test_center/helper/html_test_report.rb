@@ -49,6 +49,10 @@ module TestCenter
           REXML::XPath.first(@root, ".//h3[contains(@class, 'title')]/text()").to_s
         end
 
+        def passing?
+          @root.attribute('class').value.include?('passing')
+        end
+
         def row_color
           @root.attribute('class').value.include?('odd') ? 'odd' : ''
         end
