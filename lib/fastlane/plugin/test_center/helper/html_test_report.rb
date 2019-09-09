@@ -39,7 +39,7 @@ module TestCenter
 
         def testcase_with_title(title)
           testcase_element = REXML::XPath.first(@root, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ')]//*[text()='#{title}']/../..")
-          TestCase.new(testcase_element)
+          TestCase.new(testcase_element) unless testcase_element.nil?
         end
 
         def passing?

@@ -54,6 +54,13 @@ module TestCenter::Helper::HtmlTestReport
           expect(testcase.row_color).to eq('odd')
           expect(testcase.passing?).to eq(true)
         end
+
+        it 'returns nil for a testcase that does not exist in the testsuite' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+          testcase = atomic_boy_testsuite.testcase_with_title('testExample98')
+          expect(testcase).to be(nil)
+        end
       end
 
       describe '#add_testcase' do
@@ -90,13 +97,12 @@ module TestCenter::Helper::HtmlTestReport
           )
         end
 
-        skip 'adds new testcases to testsuite' do
+        it 'adds new testcases to testsuite' do
           html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
           atomic_boy_failing_testsuite = html_report.testsuites[0]
 
           html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-4.html'))))
           atomic_boy_passing_testsuite = html_report.testsuites[0]
-
           atomic_boy_failing_testsuite.collate_testsuite(atomic_boy_passing_testsuite)
           testcases = atomic_boy_failing_testsuite.testcases
           passing_statuses = testcases.map(&:passing?)
