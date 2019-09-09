@@ -45,6 +45,39 @@ module TestCenter::Helper::HtmlTestReport
         end
       end
 
+      describe '#testcase_with_title' do
+        it 'returns an existing testcase that has the given title' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+          testcase = atomic_boy_testsuite.testcase_with_title('testExample2')
+          expect(testcase).not_to be(nil)
+          expect(testcase.row_color).to eq('odd')
+          expect(testcase.passing?).to eq(true)
+        end
+      end
+
+      skip '#collate_testsuite' do
+        it 'replaces failing testcases with passing testcases' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_failing_testsuite = html_report.testsuites[0]
+
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-2.html'))))
+          atomic_boy_passing_testsuite = html_report.testsuites[0]
+
+          atomic_boy_failing_testsuite.collate_testsuite(atomic_boy_passing_testsuite)
+          passing_statuses = atomic_boy_failing_testsuite.map(&:passing?)
+          expect(passing_statuses).to eq(
+            [
+              true,
+              true,
+              true
+            ]
+          )
+        end
+
+        it 'updates the testsuite\'s passing status' do
+        end
+      end
     end
 
     describe 'TestCase' do

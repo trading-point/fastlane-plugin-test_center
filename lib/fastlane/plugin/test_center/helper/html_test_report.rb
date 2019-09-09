@@ -37,6 +37,11 @@ module TestCenter
           end
         end
 
+        def testcase_with_title(title)
+          testcase_element = REXML::XPath.first(@root, ".//*[contains(@class, 'tests')]//*[contains(concat(' ', @class, ' '), ' test ')]//*[text()='#{title}']/../..")
+          TestCase.new(testcase_element)
+        end
+
         def passing?
           @root.attribute('class').value.include?('passing')
         end
