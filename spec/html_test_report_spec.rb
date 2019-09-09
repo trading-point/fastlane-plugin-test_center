@@ -56,7 +56,21 @@ module TestCenter::Helper::HtmlTestReport
         end
       end
 
-      skip '#collate_testsuite' do
+      describe '#add_testcase' do
+        it 'adds the given testcase' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-4.html'))))
+          testcase_99 = html_report.testsuites[0].testcase_with_title('testExample99')
+          atomic_boy_testsuite.add_testcase(testcase_99)
+          testcases = atomic_boy_testsuite.testcases
+          expect(testcases.size).to eq(4)
+          expect(atomic_boy_testsuite.testcase_with_title('testExample99')).not_to be(nil)
+        end
+      end
+
+      describe '#collate_testsuite' do
         it 'replaces failing testcases with passing testcases' do
           html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
           atomic_boy_failing_testsuite = html_report.testsuites[0]
@@ -65,12 +79,33 @@ module TestCenter::Helper::HtmlTestReport
           atomic_boy_passing_testsuite = html_report.testsuites[0]
 
           atomic_boy_failing_testsuite.collate_testsuite(atomic_boy_passing_testsuite)
-          passing_statuses = atomic_boy_failing_testsuite.map(&:passing?)
+          testcases = atomic_boy_failing_testsuite.testcases
+          passing_statuses = testcases.map(&:passing?)
           expect(passing_statuses).to eq(
             [
               true,
               true,
               true
+            ]
+          )
+        end
+
+        skip 'adds new testcases to testsuite' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_failing_testsuite = html_report.testsuites[0]
+
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-4.html'))))
+          atomic_boy_passing_testsuite = html_report.testsuites[0]
+
+          atomic_boy_failing_testsuite.collate_testsuite(atomic_boy_passing_testsuite)
+          testcases = atomic_boy_failing_testsuite.testcases
+          passing_statuses = testcases.map(&:passing?)
+          expect(passing_statuses).to eq(
+            [
+              false,
+              true,
+              true,
+              false
             ]
           )
         end

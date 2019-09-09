@@ -45,6 +45,23 @@ module TestCenter
         def passing?
           @root.attribute('class').value.include?('passing')
         end
+
+        def add_testcase(testcase)
+          tests_table = REXML::XPath.first(@root, ".//*[contains(@class, 'tests')]/table")
+          tests_table.push(testcase.root)
+        end
+
+        def collate_testsuite(testsuite)
+          given_testcases = testsuite.testcases
+          given_testcases.each do |given_testcase|
+            existing_testcase = testcase_with_title(given_testcase.title)
+            if existing_testcase.nil?
+              add_testcase(given_testcase)
+            else
+              existing_testcase.update_testcase(given_testcase)
+            end
+          end
+        end
       end
 
       class TestCase
