@@ -39,6 +39,8 @@ module TestCenter
       end
 
       class TestCase
+        attr_reader :root
+
         def initialize(testcase_element)
           @root = testcase_element
         end
@@ -68,6 +70,21 @@ module TestCenter
           ].join(' and ')
           
           REXML::XPath.first(@root.parent, "//[#{xpath_class_attributes}]")
+        end
+
+        def update_testcase(testcase)
+          color = row_color
+          failure = failure_details
+          parent = @root.parent
+          unless failure.kind_of?(String)
+            parent.delete(failure)
+          end
+          new_failure = testcase.failure_details
+          unless new_failure.kind_of?(String)
+            parent.insert_after(@root, new_failure)
+          end
+          parent.replace_child(@root, testcase.root)
+          @root = testcase.root
         end
       end
     end

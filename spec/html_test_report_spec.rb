@@ -107,7 +107,27 @@ module TestCenter::Helper::HtmlTestReport
           failure_location = REXML::XPath.first(failure_details, "//[@class = 'test-detail']/text()").to_s
           expect(failure_location).to eq('AtomicBoyUITests.m:40')
         end
-      end 
+      end
+      
+      describe '#update_testcase' do
+        it 'replaces a failing testcase with a passing test case' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_failing_testcase = testsuites[1].testcases[0]
+
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-2.html'))))
+          testsuites = html_report.testsuites
+          atomic_boy_ui_swift_passing_testcase = testsuites[0].testcases[0]
+
+          atomic_boy_ui_failing_testcase.update_testcase(atomic_boy_ui_swift_passing_testcase)
+          expect(atomic_boy_ui_failing_testcase.failure_details).to eq('')
+        end
+
+        skip 'matches the previous passing status'
+        skip 'matches the previous row color'
+        skip 'replaces a failing testcase with a more up-to-date testcase'
+        skip 'replaces a passing test case with a failing test case'
+      end
     end
   end
 end
