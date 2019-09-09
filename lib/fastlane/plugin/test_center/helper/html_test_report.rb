@@ -36,6 +36,10 @@ module TestCenter
             TestCase.new(testcase_element)
           end
         end
+
+        def passing?
+          @root.attribute('class').value.include?('passing')
+        end
       end
 
       class TestCase

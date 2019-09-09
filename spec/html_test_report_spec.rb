@@ -30,6 +30,21 @@ module TestCenter::Helper::HtmlTestReport
           expect(atomic_boy_ui_swift_testcases.size).to eq(1)
         end
       end
+
+      describe '#passing?' do
+        it 'returns true when all testcases have passed' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-2.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+          expect(atomic_boy_testsuite.passing?).to eq(true)
+        end
+
+        it 'returns false when not all testcases have passed' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+          expect(atomic_boy_testsuite.passing?).to eq(false)
+        end
+      end
+
     end
 
     describe 'TestCase' do
