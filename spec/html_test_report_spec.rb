@@ -8,6 +8,45 @@ module TestCenter::Helper::HtmlTestReport
           expect(testsuites.size).to eq(2)
         end
       end
+
+      skip '#collate_testsuite' do
+        it 'merges the given testsuite with an existing testsuite' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+
+          html_report2 = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-2.html'))))
+          testsuites = html_report2.testsuites
+          atomic_boy_ui_swift_testsuite = testsuites[0]
+          html_report.collate_testsuite(atomic_boy_ui_swift_testsuite)
+          testcases = []
+          html_report.testsuites.each do |testsuite|
+            testsuite.testcases.each do |testcase|
+              testcases << testcase
+            end
+          end
+          testcase_titles = testcases.map(&:title)
+          expect(testcase_titles).to eq(
+            []
+          )
+        end
+
+        it 'adds the given testsuite to the report when it didn\'t previously exist' do
+        end
+      end
+
+      skip '#collate_report' do
+        it 'merges two reports with same testsuites' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+
+          html_report2 = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-2.html'))))
+          html_report.collate_report(html_report2)
+          expect(html_report.testsuites.size).to eq(2)
+          testsuite_1 = html_report.testsuites[0]
+          testsuite_2 = html_report.testsuites[1]
+          expect(testsuite_1.testcases.size).to eq(2)
+          expect(testsuite_2.testcases.size).to eq(1)
+          expect(testsuite_2.passing?).to eq(true)
+        end
+      end
     end
 
     describe 'TestSuite' do
