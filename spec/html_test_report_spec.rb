@@ -45,6 +45,22 @@ module TestCenter::Helper::HtmlTestReport
         end
       end
 
+      describe '#set_passing' do
+        it 'sets failing testsuite to passing' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+          atomic_boy_testsuite.set_passing(true)
+          expect(atomic_boy_testsuite.passing?).to eq(true)
+        end
+
+        it 'sets passing testsuite to failing' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-2.html'))))
+          atomic_boy_testsuite = html_report.testsuites[0]
+          atomic_boy_testsuite.set_passing(false)
+          expect(atomic_boy_testsuite.passing?).to eq(false)
+        end
+      end
+
       describe '#testcase_with_title' do
         it 'returns an existing testcase that has the given title' do
           html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
@@ -117,6 +133,25 @@ module TestCenter::Helper::HtmlTestReport
         end
 
         it 'updates the testsuite\'s passing status' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_failing_testsuite = html_report.testsuites[0]
+
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-2.html'))))
+          atomic_boy_passing_testsuite = html_report.testsuites[0]
+
+          atomic_boy_failing_testsuite.collate_testsuite(atomic_boy_passing_testsuite)
+          expect(atomic_boy_failing_testsuite.passing?).to eq(true)
+        end
+
+        it 'updates the testsuite\'s failing status' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite-2.html'))))
+          atomic_boy_passing_testsuite = html_report.testsuites[0]
+
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/atomicboy_uitestsuite.html'))))
+          atomic_boy_failing_testsuite = html_report.testsuites[0]
+
+          atomic_boy_passing_testsuite.collate_testsuite(atomic_boy_failing_testsuite)
+          expect(atomic_boy_failing_testsuite.passing?).to eq(false)
         end
       end
     end

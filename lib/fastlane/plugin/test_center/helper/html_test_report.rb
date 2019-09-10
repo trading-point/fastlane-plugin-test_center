@@ -46,6 +46,15 @@ module TestCenter
           @root.attribute('class').value.include?('passing')
         end
 
+        def set_passing(status)
+          desired_status = status ? ' passing ' : ' failing '
+          to_replace = status ? /\bfailing\b/ : /\bpassing\b/
+  
+          attribute = @root.attribute('class').value.sub(to_replace, desired_status)
+          attribute.gsub!(/\s{2,}/, ' ')
+          @root.add_attribute('class', attribute)  
+        end
+
         def add_testcase(testcase)
           tests_table = REXML::XPath.first(@root, ".//*[contains(@class, 'tests')]/table")
           tests_table.push(testcase.root)
@@ -61,6 +70,7 @@ module TestCenter
               existing_testcase.update_testcase(given_testcase)
             end
           end
+          set_passing(testcases.all?(&:passing?))
         end
       end
 
