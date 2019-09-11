@@ -9,27 +9,46 @@ module TestCenter::Helper::HtmlTestReport
         end
       end
 
-      skip '#collate_testsuite' do
-        it 'merges the given testsuite with an existing testsuite' do
+      describe '#testsuite_with_title' do
+        it 'finds the given testsuite when it exists' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          atomic_boy_ui_testsuite = html_report.testsuite_with_title('AtomicBoyUITests')
+          expect(atomic_boy_ui_testsuite).not_to eq(nil)
+          expect(atomic_boy_ui_testsuite.passing?).to eq(false)
+        end
+
+        it 'returns nil when the given testsuite does not exist' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          non_existent_testsuite = html_report.testsuite_with_title('Nihil')
+          expect(non_existent_testsuite).to eq(nil)
+        end
+      end
+
+      describe '#add_testsuite' do
+        it 'adds the given testsuite' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+          html_report4 = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-4.html'))))
+          new_testsuite = html_report4.testsuites[0]
+          html_report.add_testsuite(new_testsuite)
+          expect(html_report.testsuites.size).to eq(3)
+        end
+      end
+
+      describe '#collate_report' do
+        it 'merges the given reports with only existing testsuites' do
           html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
 
           html_report2 = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-2.html'))))
-          testsuites = html_report2.testsuites
-          atomic_boy_ui_swift_testsuite = testsuites[0]
-          html_report.collate_testsuite(atomic_boy_ui_swift_testsuite)
-          testcases = []
-          html_report.testsuites.each do |testsuite|
-            testsuite.testcases.each do |testcase|
-              testcases << testcase
-            end
-          end
-          testcase_titles = testcases.map(&:title)
-          expect(testcase_titles).to eq(
-            []
-          )
+          html_report.collate_report(html_report2)
+          expect(html_report.testsuites.map(&:passing?)).to eq([false, true])
         end
 
         it 'adds the given testsuite to the report when it didn\'t previously exist' do
+          html_report = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report.html'))))
+
+          html_report4 = Report.new(REXML::Document.new(File.new(File.open('./spec/fixtures/report-4.html'))))
+          html_report.collate_report(html_report4)
+          expect(html_report.testsuites.map(&:passing?)).to eq([false, false, true])
         end
       end
 

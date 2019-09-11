@@ -12,9 +12,32 @@ module TestCenter
             TestSuite.new(testsuite_element)
           end
         end
+
+        def add_testsuite(testsuite)
+          testsuites_element = REXML::XPath.first(@root, ".//*[@id='test-suites']")
+          testsuites_element.push(testsuite.root)
+        end
+
+        def collate_report(report)
+          report.testsuites.each do |given_testsuite|
+            existing_testsuite = testsuite_with_title(given_testsuite.title)
+            if existing_testsuite.nil?
+              add_testsuite(given_testsuite)
+            else
+              existing_testsuite.collate_testsuite(given_testsuite)
+            end
+          end
+        end
+
+        def testsuite_with_title(title)
+          testsuite_element = REXML::XPath.first(@root, ".//*[contains(@id, 'test-suites')]//*[@id='#{title}' and contains(concat(' ', @class, ' '), ' test-suite ')]")
+          TestSuite.new(testsuite_element) unless testsuite_element.nil?
+        end
       end
 
       class TestSuite
+        attr_reader :root
+
         def initialize(testsuite_element)
           @root = testsuite_element
         end
