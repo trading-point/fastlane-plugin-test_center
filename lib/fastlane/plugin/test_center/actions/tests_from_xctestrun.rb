@@ -3,7 +3,7 @@ require 'plist'
 module Fastlane
   module Actions
     class TestsFromXctestrunAction < Action
-      def self.runasdasd(params)
+      def self.run(params)
         UI.verbose("Getting tests from xctestrun file at '#{params[:xctestrun]}'")
         return xctestrun_tests(params[:xctestrun], params[:invocation_based_tests])
       end
@@ -17,11 +17,13 @@ module Fastlane
 
 
         xctestrun.each do |testable_name, xctestrun_config|
-          UI.verbose("testable_name : #{testable_name}")
+
           next if ignoredTestables.include? testable_name
 
           xctest_path = xctest_bundle_path(xctestrun_rootpath, xctestrun_config)
+          UI.verbose("xctest_path : #{xctest_path}")
           test_identifiers = XCTestList.tests(xctest_path)
+          UI.verbose("test_identifiers : #{test_identifiers}")
           UI.verbose("Found the following tests: #{test_identifiers.join("\n\t")}")
 
           if xctestrun_config.key?('SkipTestIdentifiers')
