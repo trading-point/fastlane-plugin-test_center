@@ -14,9 +14,10 @@ module Fastlane
         xctestrun_rootpath = File.dirname(xctestrun_path)
         tests = Hash.new([])
 
-        UI.verbose("XCTESTRUN : #{xctestrun}")
+
 
         xctestrun.each do |testable_name, xctestrun_config|
+          UI.verbose("testable_name : #{testable_name}")
           next if ignoredTestables.include? testable_name
 
           xctest_path = xctest_bundle_path(xctestrun_rootpath, xctestrun_config)
