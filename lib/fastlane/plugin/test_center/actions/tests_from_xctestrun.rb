@@ -11,19 +11,10 @@ module Fastlane
       def self.xctestrun_tests(xctestrun_path, invocation_based_tests)
 
         xctestrun = Plist.parse_xml(xctestrun_path)
-
         xctestrun_rootpath = File.dirname(xctestrun_path)
         tests = Hash.new([])
 
-
-
         xctestrun.each do |testable_name, xctestrun_config|
-
-          UI.verbose("---OnlyTestIdentifiers: #{xctestrun["#{testable_name}"]["OnlyTestIdentifiers"]}")
-
-
-          UI.verbose("testable_name : #{testable_name}")
-          UI.verbose("xctestrun_config : #{xctestrun_config}")
           next if ignoredTestables.include? testable_name
 
           xctest_path = xctest_bundle_path(xctestrun_rootpath, xctestrun_config)
