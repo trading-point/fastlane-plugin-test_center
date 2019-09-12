@@ -19,7 +19,7 @@ module Fastlane
 
         xctestrun.each do |testable_name, xctestrun_config|
 
-          UI.verbose("---OnlyTestIdentifiers: #{xctestrun]["#{testable_name}"]["OnlyTestIdentifiers"]}")
+          UI.verbose("---OnlyTestIdentifiers: #{xctestrun["#{testable_name}"]["OnlyTestIdentifiers"]}")
 
 
           UI.verbose("testable_name : #{testable_name}")
