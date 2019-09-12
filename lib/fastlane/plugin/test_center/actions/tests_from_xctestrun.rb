@@ -11,6 +11,7 @@ module Fastlane
       def self.xctestrun_tests(xctestrun_path, invocation_based_tests)
 
         xctestrun = Plist.parse_xml(xctestrun_path)
+        UI.verbose("OnlyTestIdentifiers : #{xctestrun["OnlyTestIdentifiers"]}")
         xctestrun_rootpath = File.dirname(xctestrun_path)
         tests = Hash.new([])
 
