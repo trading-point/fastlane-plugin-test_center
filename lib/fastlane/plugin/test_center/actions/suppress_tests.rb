@@ -50,7 +50,7 @@ module Fastlane
           next if file_reference.path.include?('Pods/Pods.xcodeproj')
 
           project_path = file_reference.absolute_path(File.dirname(workspace_path))
-          UI.user_error!("---- #{project_path}")
+          UI.user_error!("SuppressTests Project Path:  #{project_path}")
 
           scheme_filepaths.concat(schemes_from_project(project_path, scheme))
         end
