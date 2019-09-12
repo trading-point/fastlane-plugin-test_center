@@ -3,7 +3,7 @@ require 'plist'
 module Fastlane
   module Actions
     class TestsFromXctestrunAction < Action
-      def self.run(params)
+      def self.runasdasd(params)
         UI.verbose("Getting tests from xctestrun file at '#{params[:xctestrun]}'")
         return xctestrun_tests(params[:xctestrun], params[:invocation_based_tests])
       end
