@@ -9,14 +9,16 @@ module Fastlane
       end
 
       def self.xctestrun_tests(xctestrun_path, invocation_based_tests)
+
         xctestrun = Plist.parse_xml(xctestrun_path)
         xctestrun_rootpath = File.dirname(xctestrun_path)
         tests = Hash.new([])
+
         xctestrun.each do |testable_name, xctestrun_config|
           next if ignoredTestables.include? testable_name
 
           xctest_path = xctest_bundle_path(xctestrun_rootpath, xctestrun_config)
-          test_identifiers = XCTestList.tests(xctest_path)
+          test_identifiers = xctestrun["#{testable_name}"]["OnlyTestIdentifiers"]
           UI.verbose("Found the following tests: #{test_identifiers.join("\n\t")}")
 
           if xctestrun_config.key?('SkipTestIdentifiers')
